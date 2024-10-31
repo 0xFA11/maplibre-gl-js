@@ -1,7 +1,7 @@
 {
   "name": "@0xfa11/maplibre-gl",
+  "repository": "https://github.com/0xFA11/maplibre-gl-js",
   "version": "5.0.0-pre.4",
-  "repository": "https://github.com/0xfa11/maplibre-gl-js",
   "main": "dist/maplibre-gl.js",
   "style": "dist/maplibre-gl.css",
   "license": "BSD-3-Clause",
