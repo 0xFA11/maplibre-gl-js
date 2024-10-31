@@ -28,7 +28,7 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version-file: ".nvmrc"
-                  registry-url: "https://npm.pkg.github.com"
+                  registry-url: "https://registry.npmjs.org"
             - run: echo "NPM_PACKAGE_TAG=canary" >> $GITHUB_ENV
               if: ${{ github.event.inputs.package_tag == null }}
             - run: echo "NPM_PACKAGE_TAG=${{ github.event.inputs.package_tag }}" >> $GITHUB_ENV
@@ -38,6 +38,6 @@ jobs:
             - run: npm pkg set version="$(npx semver -c $(npm pkg get version))-${{ env.NPM_PACKAGE_TAG }}.${{ env.SHORT_GITHUB_SHA }}"
             - run: npm pkg delete description homepage funding bugs
             - run: npm run build-css && npm run generate-typings && npm run build-prod
-            - run: npm publish --tag ${{ env.NPM_PACKAGE_TAG }}
+            - run: npm publish --provenance --access public --tag ${{ env.NPM_PACKAGE_TAG }}
               env:
-                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
