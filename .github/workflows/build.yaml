@@ -35,7 +35,7 @@ jobs:
               if: ${{ github.event.inputs.package_tag != null }}
             - run: echo "SHORT_GITHUB_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
             - run: npm ci
-            - run: npm pkg set version="$(npx semver -c $(npm pkg get version))-${{ env.NPM_PACKAGE_TAG }}.${{ env.SHORT_GITHUB_SHA }}"
+            - run: npm pkg set version="$(npx semver -c $(npm pkg get version))-${{ env.SHORT_GITHUB_SHA }}"
             - run: npm run build-css && npm run generate-typings && npm run build-prod
             - run: npm publish --provenance --access public --tag ${{ env.NPM_PACKAGE_TAG }}
               env:
