@@ -10,10 +10,7 @@
   "bugs": {
     "url": "https://github.com/maplibre/maplibre-gl-js/issues/"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/0xfa11/maplibre-gl-js.git"
-  },
+  "repository": "https://github.com/0xFA11/maplibre-gl-js",
   "types": "dist/maplibre-gl.d.ts",
   "type": "module",
   "dependencies": {
