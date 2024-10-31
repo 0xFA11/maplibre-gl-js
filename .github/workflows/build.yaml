@@ -1,0 +1,36 @@
+name: "📦"
+on:
+    workflow_dispatch:
+        inputs:
+            package_tag:
+                type: choice
+                description: "npm package tag"
+                required: true
+                default: canary
+                options:
+                    - canary
+                    - latest
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+    cancel-in-progress: true
+jobs:
+    build:
+        name: "⚡️"
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: ".nvmrc"
+                  registry-url: "https://npm.pkg.github.com"
+            - run: echo "SHORT_GITHUB_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+            - run: npm ci
+            - run: npm pkg set version="$(npx semver -c $(npm pkg get version))-${{ github.event.inputs.package_tag }}.${{ env.SHORT_GITHUB_SHA }}"
+            - run: npm pkg delete description homepage funding bugs
+            - run: npm run build-css && npm run generate-typings && npm run build-prod
+            - run: npm publish --tag ${{ github.event.inputs.package_tag }}
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
