@@ -1,0 +1,42 @@
+name: "📦"
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      package_tag:
+        type: choice
+        description: "npm package tag"
+        required: true
+        default: canary
+        options:
+          - canary
+          - latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: "⚡️"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          registry-url: "https://registry.npmjs.org"
+      - run: echo "NPM_PACKAGE_TAG=canary" >> $GITHUB_ENV
+        if: ${{ github.event.inputs.package_tag == null }}
+      - run: echo "NPM_PACKAGE_TAG=${{ github.event.inputs.package_tag }}" >> $GITHUB_ENV
+        if: ${{ github.event.inputs.package_tag != null }}
+      - run: echo "SHORT_GITHUB_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+      - run: npm ci
+      - run: npm pkg set version="$(npx semver -c $(npm pkg get version))-${{ env.NPM_PACKAGE_TAG }}.${{ env.SHORT_GITHUB_SHA }}"
+      - run: npm run build-css && npm run generate-typings && npm run build-prod
+      - run: npm publish --provenance --access public --tag ${{ env.NPM_PACKAGE_TAG }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
