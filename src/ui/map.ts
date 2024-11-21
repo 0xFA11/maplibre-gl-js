@@ -64,7 +64,6 @@ import {MercatorTransform} from '../geo/projection/mercator_transform';
 import {ITransform} from '../geo/transform_interface';
 import {ICameraHelper} from '../geo/projection/camera_helper';
 import {MercatorCameraHelper} from '../geo/projection/mercator_camera_helper';
-import { vec2 } from 'gl-matrix';
 
 const version = packageJSON.version;
 
@@ -2784,8 +2783,8 @@ export class Map extends Camera {
         return this._update(true);
     }
 
-    setEnvironment(ambientIntensity: number, sunLightRotation: [number, number]) {
-        this.style.setEnvironment(ambientIntensity, sunLightRotation);
+    setEnvironment(ambientIntensity: number, sunLightNormal: [number, number]) {
+        this.style.setEnvironment(ambientIntensity, sunLightNormal);
         return this._update(true);
     }
 

@@ -28,7 +28,7 @@ export type FillExtrusionUniformsType = {
 
 export type FillExtrusionUniformsTypeNext = {
     'u_ambientintensity': Uniform1f;
-    'u_sundirection': Uniform3f;
+    'u_sunlight_normal': Uniform3f;
     'u_opacity': Uniform1f;
 };
 
@@ -52,7 +52,7 @@ export type FillExtrusionPatternUniformsType = {
 
 const fillExtrusionUniformsNext = (context: Context, locations: UniformLocations): FillExtrusionUniformsTypeNext => ({
     'u_ambientintensity': new Uniform1f(context, locations.u_ambientintensity),
-    'u_sundirection': new Uniform3f(context, locations.u_sundirection),
+    'u_sunlight_normal': new Uniform3f(context, locations.u_sunlight_normal),
     'u_opacity': new Uniform1f(context, locations.u_opacity),
 });
 
@@ -119,7 +119,7 @@ const fillExtrusionUniformValuesNext = (
 ): UniformValues<FillExtrusionUniformsTypeNext> => {
     return {
         'u_ambientintensity': painter.style.ambientIntensity,
-        'u_sundirection': painter.style.sunLightRotation,
+        'u_sunlight_normal': painter.style.sunLightNormal,
         'u_opacity': opacity,
     };
 };
