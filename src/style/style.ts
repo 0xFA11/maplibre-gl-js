@@ -65,6 +65,7 @@ import {
 } from '../util/actor_messages';
 import {Projection} from '../geo/projection/projection';
 import {createProjectionFromName} from '../geo/projection/projection_factory';
+import { vec3 } from 'gl-matrix';
 
 const empty = emptyStyle() as StyleSpecification;
 /**
@@ -195,6 +196,9 @@ export class Style extends Evented {
     projection: Projection;
     sky: Sky;
 
+    ambientIntensity: number;
+    sunLightRotation: [number, number, number];
+
     _frameRequest: AbortController;
     _loadStyleRequest: AbortController;
     _spriteRequest: AbortController;
@@ -248,6 +252,7 @@ export class Style extends Evented {
         this._loaded = false;
         this._availableImages = [];
 
+        this.setEnvironment(0.5,  [0, 90]);
         this._resetUpdates();
 
         this.dispatcher.broadcast(MessageType.setReferrer, getReferrer());
@@ -1529,6 +1534,19 @@ export class Style extends Evented {
 
     getSky(): SkySpecification {
         return this.stylesheet?.sky;
+    }
+
+    setEnvironment(ambientIntensity: number, sunLightRotation: [number, number]) {
+        this.ambientIntensity = ambientIntensity;
+
+        const radX = sunLightRotation[0] * (Math.PI / 180);
+        const radY = sunLightRotation[1] * (Math.PI / 180);
+
+        const _ldr = vec3.create();
+        vec3.set(_ldr, Math.cos(radY), Math.sin(radX), Math.sin(radY));
+        vec3.normalize(_ldr, _ldr);
+
+        this.sunLightRotation = [_ldr[0], _ldr[1], _ldr[2]];
     }
 
     setSky(skyOptions?: SkySpecification, options: StyleSetterOptions = {}) {
