@@ -1,5 +1,5 @@
 uniform lowp float u_ambientintensity;
-uniform vec3 u_sundirection;
+uniform vec3 u_sunlight_normal;
 uniform lowp float u_opacity;
 
 in vec2 a_pos;
@@ -34,7 +34,7 @@ void main() {
     vec3 normalForLighting = normalize(normal / 16384.0);
 
     float ambientIntensity = u_ambientintensity;
-    float diffuseFactor = max(dot(normalForLighting, u_sundirection), 0.0);
+    float diffuseFactor = max(dot(normalForLighting, u_sunlight_normal), 0.0);
     diffuseFactor = mix(ambientIntensity, 1.0, diffuseFactor);
 
     v_color = vec4(color.rgb * diffuseFactor, 1.0);
