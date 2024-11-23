@@ -198,6 +198,7 @@ export class Style extends Evented {
 
     ambientIntensity: number;
     sunLightNormal: [number, number, number];
+    extrusionColor: [number, number, number];
 
     _frameRequest: AbortController;
     _loadStyleRequest: AbortController;
@@ -252,6 +253,7 @@ export class Style extends Evented {
         this._loaded = false;
         this._availableImages = [];
 
+        this.setExtrusionColor([0.2, 0.2, 0.2]);
         this.setEnvironment(0.5,  [0, 90]);
         this._resetUpdates();
 
@@ -1534,6 +1536,10 @@ export class Style extends Evented {
 
     getSky(): SkySpecification {
         return this.stylesheet?.sky;
+    }
+
+    setExtrusionColor(color: [number, number, number]) {
+        this.extrusionColor = color;
     }
 
     setEnvironment(ambientIntensity: number, sunLightNormal: [number, number]) {

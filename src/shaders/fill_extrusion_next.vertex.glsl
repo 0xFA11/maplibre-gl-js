@@ -1,3 +1,4 @@
+uniform vec3 u_extrusion_color;
 uniform lowp float u_ambientintensity;
 uniform vec3 u_sunlight_normal;
 uniform lowp float u_opacity;
@@ -15,13 +16,9 @@ out vec4 v_color;
 #pragma mapbox: define highp float base
 #pragma mapbox: define highp float height
 
-#pragma mapbox: define highp vec4 color
-
-
 void main() {
     #pragma mapbox: initialize highp float base
     #pragma mapbox: initialize highp float height
-    #pragma mapbox: initialize highp vec4 color
 
     vec3 normal = a_normal_ed;
 
@@ -32,7 +29,6 @@ void main() {
     float ambientIntensity = u_ambientintensity;
     float diffuseFactor = max(dot(normalForLighting, u_sunlight_normal), 0.0);
     diffuseFactor = mix(ambientIntensity, 1.0, diffuseFactor);
-    color.rgb = vec3(1.0, 0.0, 0.0);
 
-    v_color = vec4(color.rgb * diffuseFactor, 1.0);
+    v_color = vec4(u_extrusion_color * diffuseFactor, 1.0);
 }
