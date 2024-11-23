@@ -10,11 +10,16 @@ import {RasterStyleLayer} from './style_layer/raster_style_layer';
 import {CustomStyleLayer, type CustomLayerInterface} from './style_layer/custom_style_layer';
 
 import type {LayerSpecification} from '@maplibre/maplibre-gl-style-spec';
+import { FillExtrusionNextStyleLayer } from './style_layer/fill_extrusion_next_style_layer';
 
 export function createStyleLayer(layer: LayerSpecification | CustomLayerInterface) {
-    if (layer.type === 'custom') {
+    if (layer.type === "custom") {
         return new CustomStyleLayer(layer);
     }
+    if ((layer.type as string) === "fill-extrusion-next") {
+        return new FillExtrusionNextStyleLayer(layer);
+    }
+
     switch (layer.type) {
         case 'background':
             return new BackgroundStyleLayer(layer);
