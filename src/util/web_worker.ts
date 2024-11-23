@@ -12,5 +12,5 @@ export interface WorkerGlobalScopeInterface {
 }
 
 export function workerFactory() {
-    return new Worker(config.WORKER_URL);
+    return new Worker(new URL('../source/worker.ts', import.meta.url), { type: 'module' });
 }

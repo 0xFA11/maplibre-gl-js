@@ -1,7 +1,6 @@
 uniform lowp float u_ambientintensity;
 uniform vec3 u_sunlight_normal;
 uniform lowp float u_opacity;
-uniform vec2 u_fill_translate;
 
 in vec3 a_pos;
 in vec3 a_normal_ed;
