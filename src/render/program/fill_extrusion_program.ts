@@ -26,6 +26,12 @@ export type FillExtrusionUniformsType = {
     'u_fill_translate': Uniform2f;
 };
 
+export type FillExtrusionUniformsTypeNext = {
+    'u_ambientintensity': Uniform1f;
+    'u_sunlight_normal': Uniform3f;
+    'u_opacity': Uniform1f;
+};
+
 export type FillExtrusionPatternUniformsType = {
     'u_lightpos': Uniform3f;
     'u_lightpos_globe': Uniform3f;
@@ -43,6 +49,12 @@ export type FillExtrusionPatternUniformsType = {
     'u_scale': Uniform3f;
     'u_fade': Uniform1f;
 };
+
+const fillExtrusionUniformsNext = (context: Context, locations: UniformLocations): FillExtrusionUniformsTypeNext => ({
+    'u_ambientintensity': new Uniform1f(context, locations.u_ambientintensity),
+    'u_sunlight_normal': new Uniform3f(context, locations.u_sunlight_normal),
+    'u_opacity': new Uniform1f(context, locations.u_opacity),
+});
 
 const fillExtrusionUniforms = (context: Context, locations: UniformLocations): FillExtrusionUniformsType => ({
     'u_lightpos': new Uniform3f(context, locations.u_lightpos),
@@ -101,6 +113,17 @@ const fillExtrusionUniformValues = (
     };
 };
 
+const fillExtrusionUniformValuesNext = (
+    painter: Painter,
+    opacity: number,
+): UniformValues<FillExtrusionUniformsTypeNext> => {
+    return {
+        'u_ambientintensity': painter.style.ambientIntensity,
+        'u_sunlight_normal': painter.style.sunLightNormal,
+        'u_opacity': opacity,
+    };
+};
+
 const fillExtrusionPatternUniformValues = (
     painter: Painter,
     shouldUseVerticalGradient: boolean,
@@ -119,7 +142,9 @@ const fillExtrusionPatternUniformValues = (
 
 export {
     fillExtrusionUniforms,
+    fillExtrusionUniformsNext,
     fillExtrusionPatternUniforms,
     fillExtrusionUniformValues,
+    fillExtrusionUniformValuesNext,
     fillExtrusionPatternUniformValues
 };
