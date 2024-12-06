@@ -33,7 +33,7 @@ import fillPatternVert from './fill_pattern.vertex.glsl.g';
 import fillExtrusionFrag from './fill_extrusion.fragment.glsl.g';
 import fillExtrusionVert from './fill_extrusion.vertex.glsl.g';
 import fillExtrusionNextVert from './fill_extrusion_next.vertex.glsl.g';
-import fillExtrusionNextFrag from './fill_extrusion.fragment.glsl.g';
+import fillExtrusionNextFrag from './fill_extrusion_next.fragment.glsl.g';
 import fillExtrusionOutlineVert from './fill_extrusion_outline.vertex.glsl.g';
 import fillExtrusionOutlineFrag from './fill_extrusion_outline.fragment.glsl.g';
 import fillExtrusionPatternFrag from './fill_extrusion_pattern.fragment.glsl.g';
