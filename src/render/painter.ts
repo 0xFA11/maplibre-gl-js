@@ -741,9 +741,7 @@ export class Painter {
                 this._showOverdrawInspector,
                 useTerrain,
                 projectionPrelude,
-                projectionDefine,
-                key
-            );
+                projectionDefine);
         }
         return this.cache[key];
     }
