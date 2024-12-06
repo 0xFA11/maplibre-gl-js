@@ -56,19 +56,9 @@ void main() {
     vec2 display_size_a = (pattern_br_a - pattern_tl_a) / pixel_ratio_from;
     vec2 display_size_b = (pattern_br_b - pattern_tl_b) / pixel_ratio_to;
 
-    #ifdef TERRAIN3D
-	    // Raise the "ceiling" of elements by the elevation of the centroid, in meters.
-        float height_terrain3d_offset = get_elevation(a_centroid);
-        // To avoid having buildings "hang above a slope", create a "basement"
-        // by lowering the "floor" of ground-level (and below) elements.
-        // This is in addition to the elevation of the centroid, in meters.
-        float base_terrain3d_offset = height_terrain3d_offset - (base > 0.0 ? 0.0 : 10.0);
-    #else
-        float height_terrain3d_offset = 0.0;
-        float base_terrain3d_offset = 0.0;
-    #endif
-    // Sub-terranian "floors and ceilings" are clamped to ground-level.
-    // 3D Terrain offsets, if applicable, are applied on the result.
+    float height_terrain3d_offset = 0.0;
+    float base_terrain3d_offset = 0.0;
+
     base = max(0.0, base) + base_terrain3d_offset;
     height = max(0.0, height) + height_terrain3d_offset;
 
@@ -76,14 +66,7 @@ void main() {
     float elevation = t > 0.0 ? height : base;
     vec2 posInTile = a_pos + u_fill_translate;
 
-    #ifdef GLOBE
-        vec3 spherePos = projectToSphere(posInTile);
-        vec3 elevatedPos = spherePos * (1.0 + elevation / GLOBE_RADIUS);
-        v_sphere_pos = elevatedPos;
-        gl_Position = interpolateProjectionFor3D(posInTile, spherePos, elevation);
-    #else
-        gl_Position = u_projection_matrix * vec4(posInTile, elevation, 1.0);
-    #endif
+    gl_Position = u_projection_matrix * vec4(posInTile, elevation, 1.0);
 
     vec2 pos = normal.x == 1.0 && normal.y == 0.0 && normal.z == 16384.0
         ? a_pos // extrusion top - note the lack of u_fill_translate, because translation should not affect the pattern

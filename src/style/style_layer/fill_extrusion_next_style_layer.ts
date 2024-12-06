@@ -31,7 +31,6 @@ export class FillExtrusionNextStyleLayer extends StyleLayer {
     }
 
     queryRadius(): number {
-
         return translateDistance(this.paint.get('fill-extrusion-translate'));
     }
 

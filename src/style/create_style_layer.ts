@@ -11,6 +11,7 @@ import {CustomStyleLayer, type CustomLayerInterface} from './style_layer/custom_
 
 import type {LayerSpecification} from '@maplibre/maplibre-gl-style-spec';
 import { FillExtrusionNextStyleLayer } from './style_layer/fill_extrusion_next_style_layer';
+import { FillExtrusionOutlineStyleLayer } from './style_layer/fill_extrusion_outline_style';
 
 export function createStyleLayer(layer: LayerSpecification | CustomLayerInterface) {
     if (layer.type === "custom") {
@@ -18,6 +19,9 @@ export function createStyleLayer(layer: LayerSpecification | CustomLayerInterfac
     }
     if ((layer.type as string) === "fill-extrusion-next") {
         return new FillExtrusionNextStyleLayer(layer);
+    }
+    if ((layer.type as string) === "fill-extrusion-outline") {
+        return new FillExtrusionOutlineStyleLayer(layer);
     }
 
     switch (layer.type) {

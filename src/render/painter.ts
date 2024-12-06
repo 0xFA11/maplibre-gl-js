@@ -50,6 +50,7 @@ import type {RenderToTexture} from './render_to_texture';
 import type {ProjectionData} from '../geo/projection/projection_data';
 import {coveringTiles} from '../geo/projection/covering_tiles';
 import { drawFillExtrusionNext } from './draw_fill_extrusion_next';
+import { drawFillExtrusionOutline } from './draw_fill_extrusion_outline';
 
 export type RenderPass = 'offscreen' | 'opaque' | 'translucent';
 
@@ -661,6 +662,9 @@ export class Painter {
             case 'fill-extrusion-next':
                 drawFillExtrusionNext(painter, sourceCache, layer as any, coords);
                 break;
+            case 'fill-extrusion-outline':
+                drawFillExtrusionOutline(painter, sourceCache, layer as any, coords);
+                break;
             case 'hillshade':
                 drawHillshade(painter, sourceCache, layer as any, coords);
                 break;
@@ -737,7 +741,8 @@ export class Painter {
                 this._showOverdrawInspector,
                 useTerrain,
                 projectionPrelude,
-                projectionDefine
+                projectionDefine,
+                key
             );
         }
         return this.cache[key];
