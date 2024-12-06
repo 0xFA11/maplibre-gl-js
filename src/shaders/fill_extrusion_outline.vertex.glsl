@@ -12,13 +12,7 @@ in vec3 a_pos;
 
 out vec4 v_color;
 
-#pragma mapbox: define highp float base
-#pragma mapbox: define highp float height
-
 void main() {
-    #pragma mapbox: initialize highp float base
-    #pragma mapbox: initialize highp float height
-
     gl_Position = u_projection_matrix * vec4(a_pos, 1.0);
     v_color = vec4(u_extrusion_color, 1.0);
 }
