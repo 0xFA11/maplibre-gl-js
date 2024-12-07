@@ -98,4 +98,3 @@ void main() {
     v_color.b += clamp(color.b * directional * u_lightcolor.b, mix(0.0, 0.3, 1.0 - u_lightcolor.b), 1.0);
     v_color *= u_opacity;
 }
-
