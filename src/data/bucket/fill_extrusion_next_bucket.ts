@@ -38,7 +38,7 @@ import { FillExtrusionNextStyleLayer } from '../../style/style_layer/fill_extrus
 // The factor (8192) scales floating-point numbers to integers for vertex stage
 const FACTOR = Math.pow(2, 13);
 
-function addVertex(vertexArray, x, y, z, nx, ny, nz) {
+function addVertex(vertexArray, x, y, z, nx, ny, nz, e, max) {
     vertexArray.emplaceBack(
         // a_pos
         x,
@@ -48,6 +48,9 @@ function addVertex(vertexArray, x, y, z, nx, ny, nz) {
         nx * FACTOR * 2,
         ny * FACTOR * 2,
         nz * FACTOR * 2,
+        // a_edge
+        Math.round(e),
+        Math.round(max)
     );
 }
 
@@ -208,7 +211,7 @@ export class FillExtrusionNextBucket implements Bucket {
 
         fillLargeMeshArrays(
             (x, y) => {
-                addVertex(vertexArray, x, y, featureHeight, 0, 0, 1);
+                addVertex(vertexArray, x, y, featureHeight, 0, 0, 1, 0, 0);
             },
             this.segments,
             this.layoutVertexArray,
@@ -223,9 +226,9 @@ export class FillExtrusionNextBucket implements Bucket {
      * For rings, it is assumed that the first and last vertex of `geometry` are equal.
      */
     private _generateSideFaces(geometry: Array<Point>, segmentReference: {segment: Segment}, sideFaceHeight: number) {
-        let edgeDistance = 0;
 
         for (let p = 1; p < geometry.length; p++) {
+            let edgeDistance = 0;
             const p1 = geometry[p];
             const p2 = geometry[p - 1];
 
@@ -241,13 +244,15 @@ export class FillExtrusionNextBucket implements Bucket {
             const dist = p2.dist(p1);
             if (edgeDistance + dist > 32768) edgeDistance = 0;
 
-            addVertex(this.layoutVertexArray, p1.x, p1.y, 0, perp.x, perp.y, 0);
-            addVertex(this.layoutVertexArray, p1.x, p1.y, sideFaceHeight, perp.x, perp.y, 0);
+            const maxEdgeDist = dist;
 
-            edgeDistance += dist;
+            addVertex(this.layoutVertexArray, p1.x, p1.y, 0, perp.x, perp.y, 0, edgeDistance, maxEdgeDist);
+            addVertex(this.layoutVertexArray, p1.x, p1.y, sideFaceHeight, perp.x, perp.y, 0, edgeDistance, maxEdgeDist);
 
-            addVertex(this.layoutVertexArray, p2.x, p2.y, 0, perp.x, perp.y, 0);
-            addVertex(this.layoutVertexArray, p2.x, p2.y, sideFaceHeight, perp.x, perp.y, 0);
+            edgeDistance = dist;
+
+            addVertex(this.layoutVertexArray, p2.x, p2.y, 0, perp.x, perp.y, 0, edgeDistance, maxEdgeDist);
+            addVertex(this.layoutVertexArray, p2.x, p2.y, sideFaceHeight, perp.x, perp.y, 0, edgeDistance, maxEdgeDist);
 
             const bottomRight = segmentReference.segment.vertexLength;
 

@@ -17,7 +17,7 @@ import type {TerrainData} from '../render/terrain';
 import {projectionObjectToUniformMap, ProjectionPreludeUniformsType, projectionUniforms} from './program/projection_program';
 import type {ProjectionData} from '../geo/projection/projection_data';
 
-export type DrawMode = WebGLRenderingContextBase['LINES'] | WebGLRenderingContextBase['TRIANGLES'] | WebGL2RenderingContext['LINE_STRIP'];
+export type DrawMode = WebGLRenderingContextBase['LINES'] | WebGLRenderingContextBase['TRIANGLES'] | WebGL2RenderingContext['LINE_STRIP'] | WebGLRenderingContextBase['TRIANGLE_STRIP'];
 
 function getTokenizedAttributesAndUniforms(array: Array<string>): Array<string> {
     const result = [];
@@ -72,6 +72,13 @@ export class Program<Us extends UniformBindings> {
         }
 
         const defines = configuration ? configuration.defines() : [];
+
+        const preludeFragmentSource = shaders.prelude.fragmentSource as string;
+        const preludeVertexSource = shaders.prelude.vertexSource as string;
+
+        let fragmentSource = source.fragmentSource;
+        let vertexSource = source.vertexSource;
+
         if (showOverdrawInspector) {
             defines.push('#define OVERDRAW_INSPECTOR;');
         }
@@ -82,8 +89,13 @@ export class Program<Us extends UniformBindings> {
             defines.push(projectionDefine);
         }
 
-        const fragmentSource = defines.concat(shaders.prelude.fragmentSource, projectionPrelude.fragmentSource, source.fragmentSource).join('\n');
-        const vertexSource = defines.concat(shaders.prelude.vertexSource, projectionPrelude.vertexSource, source.vertexSource).join('\n');
+        const injectDefines = (source: string) => {
+            const [versionLine, ...restLines] = source.split('\n');
+            return [versionLine, ...defines, ...restLines].join('\n');
+        };
+
+        fragmentSource = injectDefines(`${preludeFragmentSource}\n${projectionPrelude.fragmentSource}\n${fragmentSource}`);
+        vertexSource = injectDefines(`${preludeVertexSource}\n${projectionPrelude.vertexSource}\n${vertexSource }`);
 
         const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
         if (gl.isContextLost()) {

@@ -50,6 +50,7 @@ import type {RenderToTexture} from './render_to_texture';
 import type {ProjectionData} from '../geo/projection/projection_data';
 import {coveringTiles} from '../geo/projection/covering_tiles';
 import { drawFillExtrusionNext } from './draw_fill_extrusion_next';
+import { drawFillExtrusionOutline } from './draw_fill_extrusion_outline';
 
 export type RenderPass = 'offscreen' | 'opaque' | 'translucent';
 
@@ -737,8 +738,7 @@ export class Painter {
                 this._showOverdrawInspector,
                 useTerrain,
                 projectionPrelude,
-                projectionDefine
-            );
+                projectionDefine);
         }
         return this.cache[key];
     }
