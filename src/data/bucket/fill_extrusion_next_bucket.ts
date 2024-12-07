@@ -44,12 +44,13 @@ function addVertex(vertexArray, x, y, z, nx, ny, nz, e, max) {
         x,
         y,
         z,
-        max,
         // a_normal
         nx * FACTOR * 2,
         ny * FACTOR * 2,
         nz * FACTOR * 2,
+        // a_edge
         Math.round(e),
+        Math.round(max)
     );
 }
 

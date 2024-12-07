@@ -3,8 +3,9 @@ uniform lowp float u_ambientintensity;
 uniform vec3 u_sunlight_normal;
 uniform lowp float u_opacity;
 
-in vec4 a_pos;
-in vec4 a_normal_ed;
+in vec3 a_pos;
+in vec3 a_normal_ed;
+in vec2 a_edge;
 
 out float v_edge_distance;
 out float v_height;
@@ -30,9 +31,6 @@ void main() {
 
     vec3 normalForLighting = normalize(normal / 16384.0);
 
-    float edgeDistance = a_normal_ed.w;
-
-    v_edge_distance = edgeDistance;
 
     float diffuseFactor = max(dot(normalForLighting, u_sunlight_normal), 0.0);
     diffuseFactor = mix(u_ambientintensity, 1.0, diffuseFactor);
@@ -40,7 +38,7 @@ void main() {
     v_color = vec4(u_extrusion_color * diffuseFactor, 1.0);
 
     v_height = a_pos.z;
-    v_maxEdge = a_pos.w; // Edge Max Encoded
-    v_maxHeight = a_pos.z;
+    v_edge_distance = a_edge.x;
+    v_maxEdge = a_edge.y;
 }
 
