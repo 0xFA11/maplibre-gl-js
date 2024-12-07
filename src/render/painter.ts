@@ -662,9 +662,6 @@ export class Painter {
             case 'fill-extrusion-next':
                 drawFillExtrusionNext(painter, sourceCache, layer as any, coords);
                 break;
-            case 'fill-extrusion-outline':
-                drawFillExtrusionOutline(painter, sourceCache, layer as any, coords);
-                break;
             case 'hillshade':
                 drawHillshade(painter, sourceCache, layer as any, coords);
                 break;

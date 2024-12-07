@@ -34,7 +34,7 @@ const TRANSITION_SUFFIX = '-transition';
 export abstract class StyleLayer extends Evented {
     id: string;
     metadata: unknown;
-    type: LayerSpecification['type'] | CustomLayerInterface['type'] | 'fill-extrusion-next' | 'fill-extrusion-outline';
+    type: LayerSpecification['type'] | CustomLayerInterface['type'] | 'fill-extrusion-next';
     source: string;
     sourceLayer: string;
     minzoom: number;
