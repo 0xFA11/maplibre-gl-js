@@ -11,7 +11,7 @@ import type {SourceCache} from '../source/source_cache';
 import type {FillExtrusionStyleLayer} from '../style/style_layer/fill_extrusion_style_layer';
 import type {OverscaledTileID} from '../source/tile_id';
 
-import { FillExtrusionNextBucket } from '../data/bucket/fill_extrusion_next_bucket';
+import {FillExtrusionNextBucket} from '../data/bucket/fill_extrusion_next_bucket';
 
 export function drawFillExtrusionNext(painter: Painter, source: SourceCache, layer: FillExtrusionStyleLayer, coords: Array<OverscaledTileID>) {
     const opacity = layer.paint.get('fill-extrusion-opacity');

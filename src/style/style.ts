@@ -65,7 +65,7 @@ import {
 } from '../util/actor_messages';
 import {Projection} from '../geo/projection/projection';
 import {createProjectionFromName} from '../geo/projection/projection_factory';
-import { vec3 } from 'gl-matrix';
+import {vec3} from 'gl-matrix';
 
 const empty = emptyStyle() as StyleSpecification;
 /**
@@ -199,6 +199,7 @@ export class Style extends Evented {
     ambientIntensity: number;
     sunLightNormal: [number, number, number];
     extrusionColor: [number, number, number];
+    extrusionLineColor: [number, number, number];
 
     _frameRequest: AbortController;
     _loadStyleRequest: AbortController;
@@ -1540,6 +1541,10 @@ export class Style extends Evented {
 
     setExtrusionColor(color: [number, number, number]) {
         this.extrusionColor = color;
+    }
+
+    setExtrusionLineColor(color: [number, number, number]) {
+        this.extrusionLineColor = color;
     }
 
     setEnvironment(ambientIntensity: number, sunLightNormal: [number, number]) {

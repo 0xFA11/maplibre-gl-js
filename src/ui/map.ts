@@ -2793,6 +2793,11 @@ export class Map extends Camera {
         return this._update(true);
     }
 
+    setExtrusionLineColor(color: [number, number, number]) {
+        this.style.setExtrusionLineColor(color);
+        return this._update(true);
+    }
+
     /**
      * Returns the value of the light object.
      *

@@ -1,3 +1,4 @@
+uniform vec3 u_extrusion_line_color;
 in vec4 v_color;
 in float v_edge_distance;
 in float v_maxEdge;
@@ -20,9 +21,8 @@ void main() {
 
     float totalEdgeFactor = v_maxEdge > 0.0 ? clamp(nearEdge + farEdge, 0.0, 1.0) : 0.0;
 
-    vec4 edgeColor = vec4(0.282, 0.282, 0.282, 1.0);
+    vec4 edgeColor = vec4(u_extrusion_line_color, 1.0);
     vec3 blendedColor = mix(v_color.rgb, edgeColor.rgb, totalEdgeFactor);
 
     fragColor = vec4(blendedColor, v_color.a);
 }
-
