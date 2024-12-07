@@ -2783,6 +2783,16 @@ export class Map extends Camera {
         return this._update(true);
     }
 
+    setEnvironment(ambientIntensity: number, sunLightNormal: [number, number]) {
+        this.style.setEnvironment(ambientIntensity, sunLightNormal);
+        return this._update(true);
+    }
+
+    setExtrusionColor(color: [number, number, number]) {
+        this.style.setExtrusionColor(color);
+        return this._update(true);
+    }
+
     /**
      * Returns the value of the light object.
      *

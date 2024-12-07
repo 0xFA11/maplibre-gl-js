@@ -65,6 +65,7 @@ import {
 } from '../util/actor_messages';
 import {Projection} from '../geo/projection/projection';
 import {createProjectionFromName} from '../geo/projection/projection_factory';
+import { vec3 } from 'gl-matrix';
 
 const empty = emptyStyle() as StyleSpecification;
 /**
@@ -195,6 +196,10 @@ export class Style extends Evented {
     projection: Projection;
     sky: Sky;
 
+    ambientIntensity: number;
+    sunLightNormal: [number, number, number];
+    extrusionColor: [number, number, number];
+
     _frameRequest: AbortController;
     _loadStyleRequest: AbortController;
     _spriteRequest: AbortController;
@@ -248,6 +253,8 @@ export class Style extends Evented {
         this._loaded = false;
         this._availableImages = [];
 
+        this.setExtrusionColor([0.2, 0.2, 0.2]);
+        this.setEnvironment(0.5,  [0, 90]);
         this._resetUpdates();
 
         this.dispatcher.broadcast(MessageType.setReferrer, getReferrer());
@@ -1529,6 +1536,23 @@ export class Style extends Evented {
 
     getSky(): SkySpecification {
         return this.stylesheet?.sky;
+    }
+
+    setExtrusionColor(color: [number, number, number]) {
+        this.extrusionColor = color;
+    }
+
+    setEnvironment(ambientIntensity: number, sunLightNormal: [number, number]) {
+        this.ambientIntensity = ambientIntensity;
+
+        const radX = sunLightNormal[0] * (Math.PI / 180);
+        const radY = sunLightNormal[1] * (Math.PI / 180);
+
+        const _ldr = vec3.create();
+        vec3.set(_ldr, Math.cos(radY), Math.sin(radX), Math.sin(radY));
+        vec3.normalize(_ldr, _ldr);
+
+        this.sunLightNormal = [_ldr[0], _ldr[1], _ldr[2]];
     }
 
     setSky(skyOptions?: SkySpecification, options: StyleSetterOptions = {}) {

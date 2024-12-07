@@ -82,6 +82,7 @@ export class Program<Us extends UniformBindings> {
             defines.push(projectionDefine);
         }
 
+        defines.unshift('#version 300 es\n');
         const fragmentSource = defines.concat(shaders.prelude.fragmentSource, projectionPrelude.fragmentSource, source.fragmentSource).join('\n');
         const vertexSource = defines.concat(shaders.prelude.vertexSource, projectionPrelude.vertexSource, source.vertexSource).join('\n');
 
