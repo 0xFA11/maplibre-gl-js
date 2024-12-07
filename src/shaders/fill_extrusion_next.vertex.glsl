@@ -39,6 +39,6 @@ void main() {
 
     v_height = a_pos.z;
     v_edge_distance = a_edge.x;
-    v_maxEdge = a_edge.y;
+    v_maxEdge =  normal.z == 0.0 ? a_edge.y : 0.0;
 }
 
