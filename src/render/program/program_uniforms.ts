@@ -19,7 +19,6 @@ const emptyUniforms = (_: any, __: any): any => {};
 
 export const programUniforms = {
     fillExtrusionNext: fillExtrusionNextUniforms,
-    fillExtrusionOutline: fillExtrusionNextUniforms,
     fillExtrusion: fillExtrusionUniforms,
     fillExtrusionPattern: fillExtrusionPatternUniforms,
     fill: fillUniforms,
