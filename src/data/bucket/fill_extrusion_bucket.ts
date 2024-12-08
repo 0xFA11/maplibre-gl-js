@@ -35,6 +35,7 @@ import type {VectorTileLayer} from '@mapbox/vector-tile';
 import {subdividePolygon, subdivideVertexLine} from '../../render/subdivision';
 import type {SubdivisionGranularitySetting} from '../../render/subdivision_granularity_settings';
 import {fillLargeMeshArrays} from '../../render/fill_large_mesh_arrays';
+import earcut from 'earcut';
 
 const FACTOR = Math.pow(2, 13);
 
@@ -121,7 +122,7 @@ export class FillExtrusionBucket implements Bucket {
             if (this.hasPattern) {
                 this.features.push(addPatternDependencies('fill-extrusion', this.layers, bucketFeature, this.zoom, options));
             } else {
-                this.addFeature(bucketFeature, bucketFeature.geometry, index, canonical, {}, options.subdivisionGranularity);
+                this.addFeature(bucketFeature, bucketFeature.geometry, index, canonical, {});
             }
 
             options.featureIndex.insert(feature, bucketFeature.geometry, index, sourceLayerIndex, this.index, true);
@@ -131,7 +132,7 @@ export class FillExtrusionBucket implements Bucket {
     addFeatures(options: PopulateParameters, canonical: CanonicalTileID, imagePositions: {[_: string]: ImagePosition}) {
         for (const feature of this.features) {
             const {geometry} = feature;
-            this.addFeature(feature, geometry, feature.index, canonical, imagePositions, options.subdivisionGranularity);
+            this.addFeature(feature, geometry, feature.index, canonical, imagePositions);
         }
     }
 
@@ -167,23 +168,220 @@ export class FillExtrusionBucket implements Bucket {
         this.centroidVertexBuffer.destroy();
     }
 
-    addFeature(feature: BucketFeature, geometry: Array<Array<Point>>, index: number, canonical: CanonicalTileID, imagePositions: {[_: string]: ImagePosition}, subdivisionGranularity: SubdivisionGranularitySetting) {
+    addFeature(feature: BucketFeature, geometry: Array<Array<Point>>, index: number, canonical: CanonicalTileID, imagePositions: { [_: string]: ImagePosition }) {
         for (const polygon of classifyRings(geometry, EARCUT_MAX_RINGS)) {
-            // Compute polygon centroid to calculate elevation in GPU
-            const centroid: CentroidAccumulator = {x: 0, y: 0, sampleCount: 0};
-            const oldVertexCount = this.layoutVertexArray.length;
-            this.processPolygon(centroid, canonical, feature, polygon, subdivisionGranularity);
 
-            const addedVertices = this.layoutVertexArray.length - oldVertexCount;
+            const centroid = { x: 0, y: 0, vertexCount: 0 };
 
-            const centroidX = Math.floor(centroid.x / centroid.sampleCount);
-            const centroidY = Math.floor(centroid.y / centroid.sampleCount);
+            // Polygon data comes from OSM data, most of buildings contains single ring (enclosed polygon)
+            // Some buildings contains multiple closed polygons (multi polygon)
+            let totalVertices = 0;
+            for (const ring of polygon) {
+                totalVertices += ring.length;
+            }
 
-            for (let i = 0; i < addedVertices; i++) {
-                this.centroidVertexArray.emplaceBack(
-                    centroidX,
-                    centroidY
+            let segment = this.segments.prepareSegment(4, this.layoutVertexArray, this.indexArray);
+            const modifiedPolygon: Array<Array<Point>> = [];
+
+            // Iterate through closed polygons
+            let ringIndex = 0;
+            for (const ring of polygon) {
+
+                // Does ring outside of the tile bounds
+                if (ring.length === 0 || isEntirelyOutside(ring)) {
+                    continue;
+                }
+
+                // Does ring closed? PS: always true
+                if (ring[0].x === ring[ring.length - 1].x && ring[0].y === ring[ring.length - 1].y) {
+                    ring.pop();
+                }
+
+                const offset = 20.0;
+
+                const ringLength = ring.length;
+                const newPoints: Array<Point> = [];
+                const normals: Array<Point> = [];
+
+                let prevEdgeNormal = null;
+                let prev_p1bIndex = null;
+
+                let first_p1aIndex = null;
+                let firstEdgeNormal = null;
+
+                for (let i = 0; i < ringLength; i++) {
+                    const pPrev = ring[(i - 1 + ringLength) % ringLength];
+                    const pCur = ring[i];
+                    const pNext = ring[(i + 1) % ringLength];
+
+                    const dirPrev = pCur.sub(pPrev)._unit();
+                    const dirNext = pNext.sub(pCur)._unit();
+
+                    const p1a = pCur.sub(dirPrev.mult(offset)); // Offset -dirPrev
+                    const p1b = pCur.add(dirNext.mult(offset)); // Offset +dirNext
+
+                    const p1aIndex = newPoints.length;
+                    newPoints.push(p1a);
+
+                    const p1bIndex = newPoints.length;
+                    newPoints.push(p1b);
+
+                    // Compute edge between p1a and p1b
+                    const edge = p1b.sub(p1a)._unit();
+
+                    // Compute normal for this edge
+                    const edgeNormal = edge._perp();
+
+                    if (prevEdgeNormal !== null) {
+                        const normalP1a = prevEdgeNormal.add(edgeNormal)._unit();
+                        normals[p1aIndex] = normalP1a;
+
+                        const normalPrevP1b = prevEdgeNormal.add(edgeNormal)._unit();
+                        normals[prev_p1bIndex] = normalPrevP1b;
+                    } else {
+                        first_p1aIndex = p1aIndex;
+                        firstEdgeNormal = edgeNormal;
+                    }
+
+                    prevEdgeNormal = edgeNormal;
+                    prev_p1bIndex = p1bIndex;
+                }
+
+                if (prevEdgeNormal !== null && firstEdgeNormal !== null) {
+                    const normalLastP1b = prevEdgeNormal.add(firstEdgeNormal)._unit();
+                    normals[prev_p1bIndex] = normalLastP1b;
+
+                    const normalFirstP1a = firstEdgeNormal.add(prevEdgeNormal)._unit();
+                    normals[first_p1aIndex] = normalFirstP1a;
+                }
+
+                modifiedPolygon[ringIndex] = newPoints;
+
+                let edgeDistance = 0;
+                const numPoints = newPoints.length;
+                for (let i = 0; i < numPoints; i++) {
+                    const currentPoint = newPoints[i];
+                    const nextIndex = (i + 1) % numPoints;
+                    const nextPoint = newPoints[nextIndex];
+
+                    if (!isBoundaryEdge(currentPoint, nextPoint)) {
+                        if (segment.vertexLength + 4 > SegmentVector.MAX_VERTEX_ARRAY_LENGTH) {
+                            segment = this.segments.prepareSegment(4, this.layoutVertexArray, this.indexArray);
+                        }
+
+                        const edgeLength = currentPoint.dist(nextPoint);
+
+                        if (edgeDistance + edgeLength > 32768) {
+                            edgeDistance = 0;
+                        }
+
+                        const baseIndex = segment.vertexLength;
+
+                        // Use normals at the vertices
+                        const normalCurrent = normals[i];
+                        const normalNext = normals[nextIndex];
+
+                        addVertex(
+                            this.layoutVertexArray,
+                            currentPoint.x, currentPoint.y,
+                            normalCurrent.x, normalCurrent.y,
+                            0, 0,
+                            edgeDistance
+                        );
+                        addVertex(
+                            this.layoutVertexArray,
+                            currentPoint.x, currentPoint.y,
+                            normalCurrent.x, normalCurrent.y,
+                            0, 1,
+                            edgeDistance
+                        );
+
+                        centroid.x += 2 * currentPoint.x;
+                        centroid.y += 2 * currentPoint.y;
+                        centroid.vertexCount += 2;
+                        edgeDistance += edgeLength;
+
+                        addVertex(
+                            this.layoutVertexArray,
+                            nextPoint.x, nextPoint.y,
+                            normalNext.x, normalNext.y,
+                            0, 0,
+                            edgeDistance
+                        );
+                        addVertex(
+                            this.layoutVertexArray,
+                            nextPoint.x, nextPoint.y,
+                            normalNext.x, normalNext.y,
+                            0, 1,
+                            edgeDistance
+                        );
+
+                        centroid.x += 2 * nextPoint.x;
+                        centroid.y += 2 * nextPoint.y;
+                        centroid.vertexCount += 2;
+
+                        segment.vertexLength += 4;
+
+                        this.indexArray.emplaceBack(baseIndex, baseIndex + 1, baseIndex + 2);
+                        this.indexArray.emplaceBack(baseIndex + 1, baseIndex + 3, baseIndex + 2);
+
+                        segment.primitiveLength += 2;
+                    }
+                }
+                ringIndex++;
+            }
+
+            if (segment.vertexLength + totalVertices > SegmentVector.MAX_VERTEX_ARRAY_LENGTH) {
+                segment = this.segments.prepareSegment(totalVertices, this.layoutVertexArray, this.indexArray);
+            }
+
+            if (vectorTileFeatureTypes[feature.type] !== 'Polygon') continue;
+
+            const flattened = [];
+            const holeIndices = [];
+            const triangleIndex = segment.vertexLength;
+            for (const ring of modifiedPolygon) {
+                if (ring.length === 0) continue;
+
+                if (ring !== modifiedPolygon[0]) {
+                    holeIndices.push(flattened.length / 2);
+                }
+
+                for (let i = 0; i < ring.length; i++) {
+                    const p = ring[i];
+
+                    if (segment.vertexLength + 1 > SegmentVector.MAX_VERTEX_ARRAY_LENGTH) {
+                        segment = this.segments.prepareSegment(1, this.layoutVertexArray, this.indexArray);
+                    }
+
+                    addVertex(this.layoutVertexArray, p.x, p.y, 0, 0, 1, 1, 0);
+
+                    centroid.x += p.x;
+                    centroid.y += p.y;
+                    centroid.vertexCount += 1;
+
+                    segment.vertexLength += 1;
+
+                    flattened.push(p.x, p.y);
+                }
+            }
+            const indices = earcut(flattened, holeIndices);
+
+            for (let j = 0; j < indices.length; j += 3) {
+                this.indexArray.emplaceBack(
+                    triangleIndex + indices[j],
+                    triangleIndex + indices[j + 2],
+                    triangleIndex + indices[j + 1]
                 );
+            }
+
+
+            segment.primitiveLength += indices.length / 3;
+
+            const averageX = Math.floor(centroid.x / centroid.vertexCount);
+            const averageY = Math.floor(centroid.y / centroid.vertexCount);
+            for (let i = 0; i < centroid.vertexCount; i++) {
+                this.centroidVertexArray.emplaceBack(averageX, averageY);
             }
         }
 
