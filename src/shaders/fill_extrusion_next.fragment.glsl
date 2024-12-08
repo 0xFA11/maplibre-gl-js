@@ -1,4 +1,5 @@
 uniform vec3 u_extrusion_line_color;
+uniform float u_extrusion_line_width;
 in vec4 v_color;
 in float v_edge_distance;
 in float v_maxEdge;
@@ -6,7 +7,7 @@ in float v_maxEdge;
 void main() {
     float fw = max(fwidth(v_edge_distance), 1e-5);
 
-    float radius = 1.0;
+    float radius = u_extrusion_line_width;
 
     float nearStart = 0.0;
     float nearEnd   = radius;

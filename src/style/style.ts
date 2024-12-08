@@ -200,6 +200,7 @@ export class Style extends Evented {
     sunLightNormal: [number, number, number];
     extrusionColor: [number, number, number];
     extrusionLineColor: [number, number, number];
+    extrusionLineWidth: number;
 
     _frameRequest: AbortController;
     _loadStyleRequest: AbortController;
@@ -256,6 +257,7 @@ export class Style extends Evented {
 
         this.setExtrusionColor([0.2, 0.2, 0.2]);
         this.setExtrusionLineColor([0.2, 0.2, 0.2]);
+        this.setExtrusionLineWidth(4);
         this.setEnvironment(0.5,  [0, 90]);
         this._resetUpdates();
 
@@ -1546,6 +1548,10 @@ export class Style extends Evented {
 
     setExtrusionLineColor(color: [number, number, number]) {
         this.extrusionLineColor = color;
+    }
+
+    setExtrusionLineWidth(width: number) {
+        this.extrusionLineWidth = width;
     }
 
     setEnvironment(ambientIntensity: number, sunLightNormal: [number, number]) {

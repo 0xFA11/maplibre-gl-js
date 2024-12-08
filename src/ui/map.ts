@@ -2798,6 +2798,11 @@ export class Map extends Camera {
         return this._update(true);
     }
 
+    setExtrusionLineWidth(width: number) {
+        this.style.setExtrusionLineWidth(width);
+        return this._update(true);
+    }
+
     /**
      * Returns the value of the light object.
      *
