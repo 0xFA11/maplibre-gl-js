@@ -2798,8 +2798,8 @@ export class Map extends Camera {
         return this._update(true);
     }
 
-    setExtrusionLineWidth(width: number) {
-        this.style.setExtrusionLineWidth(width);
+    setExtrusionLineWidth(widthVertical: number, widthHorizontal: number) {
+        this.style.setExtrusionLineWidth(widthVertical, widthHorizontal);
         return this._update(true);
     }
 
