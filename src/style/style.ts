@@ -255,6 +255,7 @@ export class Style extends Evented {
         this._availableImages = [];
 
         this.setExtrusionColor([0.2, 0.2, 0.2]);
+        this.setExtrusionLineColor([0.2, 0.2, 0.2]);
         this.setEnvironment(0.5,  [0, 90]);
         this._resetUpdates();
 
